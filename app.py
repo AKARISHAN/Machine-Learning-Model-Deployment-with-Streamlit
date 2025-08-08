@@ -103,11 +103,11 @@ elif options == 'Model Performance':
     - Less prone to overfitting
     """)
     
-    st.subheader('Feature Importance')
-    features = ['Pclass', 'Sex', 'Age', 'SibSp', 'Parch', 'Fare', 'Embarked']
-    importance = model.feature_importances_
-    
-    fig, ax = plt.subplots()
-    sns.barplot(x=importance, y=features, ax=ax)
-    ax.set_title('Feature Importance')
-    st.pyplot(fig)
+    # Corrected features list (remove 'Embarked')
+features = ['Pclass', 'Sex', 'Age', 'SibSp', 'Parch', 'Fare']
+importance = model.feature_importances_
+
+fig, ax = plt.subplots()
+sns.barplot(x=importance, y=features, ax=ax)
+ax.set_title('Feature Importance')
+st.pyplot(fig)
