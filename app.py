@@ -15,7 +15,7 @@ st.title('Titanic Survival Prediction')
 # Sidebar navigation
 st.sidebar.title('Navigation')
 options = st.sidebar.radio('Select a page:', 
-                          ['Data Exploration', 'Visualization', 'Prediction', 'Model Performance'])
+                           ['Data Exploration', 'Visualization', 'Prediction', 'Model Performance'])
 
 # Data Exploration Section
 if options == 'Data Exploration':
@@ -58,69 +58,39 @@ elif options == 'Visualization':
     sns.histplot(data=df, x='Age', hue='Survived', bins=30, kde=True, ax=ax)
     st.pyplot(fig)
 
-# Prediction Section (FIXED VERSION)
+# Prediction Section
 elif options == 'Prediction':
     st.header('Predict Survival on Titanic')
     
     # Input widgets
-    st.subheader('Passenger Details')
-    col1, col2 = st.columns(2)
-    with col1:
-        pclass = st.selectbox('Passenger Class', [1, 2, 3])
-        sex = st.selectbox('Sex', ['male', 'female'])
-        age = st.slider('Age', 0, 100, 30)
-    with col2:
-        sibsp = st.slider('Siblings/Spouses Aboard', 0, 8, 0)
-        parch = st.slider('Parents/Children Aboard', 0, 6, 0)
-        fare = st.slider('Fare Price', 0, 600, 30)
-    embarked = st.selectbox('Embarkation Port', ['S', 'C', 'Q'])
+    pclass = st.selectbox('Passenger Class', [1, 2, 3])
+    sex = st.selectbox('Sex', ['male', 'female'])
+    age = st.slider('Age', 0, 100, 30)
+    sibsp = st.slider('Number of Siblings/Spouses Aboard', 0, 8, 0)
+    parch = st.slider('Number of Parents/Children Aboard', 0, 6, 0)
+    fare = st.slider('Fare', 0, 600, 30)
     
-    # Preprocessing (must match training)
+    # Preprocess inputs
     sex_encoded = 0 if sex == 'male' else 1
-    embarked_map = {'S': 0, 'C': 1, 'Q': 2}
-    embarked_encoded = embarked_map[embarked]
     
-    # Create input array in CORRECT ORDER
-    input_data = np.array([[
-        pclass,
-        sex_encoded,
-        age,
-        sibsp,
-        parch,
-        fare,
-        embarked_encoded
-    ]])
-    
-    # Prediction button
-    if st.button('Predict Survival', type='primary'):
+    # Make prediction
+    if st.button('Predict Survival'):
+        # Remove Embarked if your model was trained without it
+        input_data = np.array([[pclass, sex_encoded, age, sibsp, parch, fare]])
+        
         try:
-            # Debug info
-            st.write("Input features:", ['Pclass', 'Sex', 'Age', 'SibSp', 'Parch', 'Fare', 'Embarked'])
-            st.write("Input values:", input_data[0])
-            
-            # Make prediction
             prediction = model.predict(input_data)
             probability = model.predict_proba(input_data)
             
-            # Display results
-            st.subheader('Prediction Result')
             if prediction[0] == 1:
-                st.success('✅ This passenger would have survived!')
+                st.success('This passenger would have survived!')
             else:
-                st.error('❌ This passenger would not have survived.')
-            
-            # Show probability gauge
-            prob_percent = probability[0][1] * 100
-            st.metric(label="Survival Probability", 
-                     value=f"{prob_percent:.1f}%",
-                     delta=f"Confidence: {min(prob_percent, 100-prob_percent):.1f}%")
-            
-            # Visual probability indicator
-            st.progress(int(prob_percent))
-            
+                st.error('This passenger would not have survived.')
+                
+            st.write(f"Probability of survival: {probability[0][1]:.2f}")
+        
         except Exception as e:
-            st.error(f"⚠️ Prediction failed: {str(e)}")
-            st.info("Check that all input values are valid numbers.")
+            st.error(f"Prediction failed: {e}")
 
 # Model Performance Section
 elif options == 'Model Performance':
@@ -141,7 +111,3 @@ elif options == 'Model Performance':
     sns.barplot(x=importance, y=features, ax=ax)
     ax.set_title('Feature Importance')
     st.pyplot(fig)
-
-# Run the app
-if __name__ == '__main__':
-    st.set_option('deprecation.showPyplotGlobalUse', False)
